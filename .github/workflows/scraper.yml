@@ -23,7 +23,7 @@ jobs:
           cache: "npm"
 
       - name: 📦 Bağımlılıkları yükle
-        run: npm ci
+        run: npm install
 
       - name: 🌐 Chrome bağımlılıklarını yükle
         run: |
