@@ -1,0 +1,21 @@
+{
+  "name": "obilet-scraper",
+  "version": "1.0.0",
+  "description": "Obilet uçak bileti fiyat scraper - TypeScript + Puppeteer",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "server": "npm run build && node dist/server.js",
+    "dev": "ts-node src/index.ts",
+    "serve": "npx serve public"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

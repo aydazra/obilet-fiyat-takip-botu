@@ -1,0 +1,22 @@
+{
+  "searchConfig": {
+    "tripType": "one-way",
+    "origin": "Gaziantep",
+    "destination": "İzmir",
+    "departureDate": "03.03.2026",
+    "adults": 1,
+    "children": 0,
+    "nonStop": true
+  },
+  "scrapedAt": "2026-03-02T06:10:45.991Z",
+  "flights": [
+    {
+      "airline": "SunExpress",
+      "departureTime": "08:20",
+      "arrivalTime": "10:15",
+      "duration": "1s 55dk",
+      "price": "3.118,87 TL",
+      "isDirect": true
+    }
+  ]
+}

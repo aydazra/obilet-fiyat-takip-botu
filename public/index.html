@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>✈️ Obilet Uçuş Fiyatları</title>
+  <!-- Flatpickr takvim kütüphanesi -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh;}
+    header{background:linear-gradient(135deg,#1a56db,#0e3a9b);color:white;padding:24px 40px;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+    header h1{font-size:1.8rem;} header p{opacity:.8;margin-top:4px;font-size:.9rem;}
+    .container{max-width:960px;margin:32px auto;padding:0 20px;}
+    .card{background:white;border-radius:14px;padding:28px;margin-bottom:24px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+    .card h2{font-size:1.1rem;color:#1a1a2e;margin-bottom:20px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+    .form-group{display:flex;flex-direction:column;gap:6px;position:relative;}
+    label{font-size:.75rem;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.4px;}
+    input[type=text],input[type=number]{border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:.95rem;color:#1a1a2e;transition:border .2s;width:100%;}
+    input:focus{outline:none;border-color:#1a56db;}
+
+    /* Takvim input — ikon göster */
+    .date-input-wrap{position:relative;}
+    .date-input-wrap input{padding-right:36px;cursor:pointer;}
+    .date-input-wrap .cal-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#888;font-size:1rem;}
+
+    /* flatpickr override */
+    .flatpickr-calendar{border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);border:none;}
+    .flatpickr-day.selected,.flatpickr-day.selected:hover{background:#1a56db;border-color:#1a56db;}
+    .flatpickr-day:hover{background:#eff6ff;}
+
+    /* Şehir önerisi */
+    .suggestions{position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #1a56db;border-top:none;border-radius:0 0 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:200;max-height:200px;overflow-y:auto;display:none;}
+    .suggestions.show{display:block;}
+    .suggestion-item{padding:10px 12px;cursor:pointer;font-size:.9rem;color:#1a1a2e;display:flex;align-items:center;gap:8px;transition:background .15s;}
+    .suggestion-item:hover{background:#eff6ff;color:#1a56db;}
+
+    .trip-row{display:flex;gap:12px;margin-bottom:20px;}
+    .trip-btn{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:8px;background:white;cursor:pointer;font-size:.9rem;font-weight:600;color:#666;transition:all .2s;}
+    .trip-btn.active{border-color:#1a56db;background:#eff6ff;color:#1a56db;}
+    .return-group{display:none;}
+    .return-group.show{display:flex;flex-direction:column;gap:6px;}
+
+    /* Aktarmasız checkbox */
+    .nonstop-row{display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 14px;background:#f8faff;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;user-select:none;}
+    .nonstop-row:hover{border-color:#1a56db;background:#eff6ff;}
+    .nonstop-row input[type=checkbox]{width:18px;height:18px;accent-color:#1a56db;cursor:pointer;flex-shrink:0;}
+    .nonstop-label{font-size:.9rem;font-weight:600;color:#1a1a2e;}
+    .nonstop-sub{font-size:.75rem;color:#888;margin-left:auto;}
+
+    .search-btn{width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#1a56db,#0e3a9b);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;}
+    .search-btn:hover{opacity:.9;} .search-btn:disabled{opacity:.6;cursor:not-allowed;}
+
+    .status-bar{display:none;align-items:center;gap:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 18px;margin-bottom:20px;}
+    .status-bar.show{display:flex;}
+    .spinner{width:22px;height:22px;border:3px solid #bfdbfe;border-top-color:#1a56db;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .status-text{font-size:.9rem;color:#1d4ed8;font-weight:500;}
+    .error-bar{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;margin-bottom:20px;color:#991b1b;font-size:.9rem;}
+    .error-bar.show{display:block;}
+
+    .results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .results-title{font-size:1rem;font-weight:700;color:#1a1a2e;}
+    .badge{padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:600;background:#dbeafe;color:#1d4ed8;}
+    .flights-list{display:flex;flex-direction:column;gap:14px;}
+    .flight-wrap{position:relative;}
+    .rank{position:absolute;top:-10px;left:18px;background:#1a56db;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;z-index:1;}
+    .flight-card{background:white;border-radius:12px;padding:20px 24px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:grid;grid-template-columns:1fr auto 1fr auto;align-items:center;gap:16px;transition:transform .15s,box-shadow .15s;}
+    .flight-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+    .time-block{display:flex;flex-direction:column;}
+    .time{font-size:1.6rem;font-weight:700;color:#1a1a2e;}
+    .city{font-size:.78rem;color:#999;margin-top:2px;}
+    .airline-name{font-size:.85rem;color:#444;margin-top:6px;font-weight:600;}
+    .mid{text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:110px;}
+    .arr-line{display:flex;align-items:center;gap:4px;width:100%;}
+    .line{flex:1;height:2px;background:#e5e7eb;}
+    .dur{font-size:.78rem;color:#999;}
+    .dbadge{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:700;}
+    .direct{background:#d1fae5;color:#065f46;} .indirect{background:#fee2e2;color:#991b1b;}
+    .price-block{text-align:right;}
+    .price{font-size:1.3rem;font-weight:700;color:#1a56db;}
+    .price-sub{font-size:.72rem;color:#bbb;}
+    .empty{text-align:center;padding:60px 20px;color:#aaa;}
+    .empty .icon{font-size:3rem;margin-bottom:12px;}
+    .scraped-at{text-align:center;font-size:.78rem;color:#bbb;margin-top:20px;}
+    .fallback-box{background:white;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+    pre{background:#1e1e2e;color:#a8ff78;padding:16px;border-radius:8px;margin:10px 0;font-size:.83rem;overflow-x:auto;white-space:pre-wrap;}
+    code{background:#f3f4f6;padding:2px 8px;border-radius:4px;}
+    .reload-btn{padding:10px 24px;background:#1a56db;color:white;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;margin-top:12px;}
+    @media(max-width:640px){.form-grid{grid-template-columns:1fr 1fr;}.flight-card{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;}.price-block{grid-column:2;grid-row:1;}.mid{grid-column:1/-1;}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>✈️ Obilet Uçuş Fiyat Takibi</h1>
+  <p>Şehir seç, tarihi gir, "Ara" butonuna bas</p>
+</header>
+<div class="container">
+  <div class="card">
+    <h2>🔍 Uçuş Ara</h2>
+    <div class="trip-row">
+      <button class="trip-btn active" id="btn-ow" onclick="setTrip('one-way')">✈ Tek Yön</button>
+      <button class="trip-btn" id="btn-rt" onclick="setTrip('round-trip')">🔄 Gidiş-Dönüş</button>
+    </div>
+    <div class="form-grid">
+      <!-- Kalkış -->
+      <div class="form-group">
+        <label>Kalkış Şehri</label>
+        <input id="origin" type="text" placeholder="Şehir ara..." autocomplete="off"
+               oninput="showSuggestions('origin', this.value)"
+               onblur="hideSuggestions('origin-suggestions')"
+               value="İstanbul"/>
+        <div class="suggestions" id="origin-suggestions"></div>
+      </div>
+      <!-- Varış -->
+      <div class="form-group">
+        <label>Varış Şehri</label>
+        <input id="destination" type="text" placeholder="Şehir ara..." autocomplete="off"
+               oninput="showSuggestions('destination', this.value)"
+               onblur="hideSuggestions('destination-suggestions')"
+               value="Ankara"/>
+        <div class="suggestions" id="destination-suggestions"></div>
+      </div>
+      <!-- Gidiş Tarihi -->
+      <div class="form-group">
+        <label>Gidiş Tarihi</label>
+        <div class="date-input-wrap">
+          <input id="departureDate" type="text" placeholder="Tarih seç..." readonly/>
+          <span class="cal-icon">📅</span>
+        </div>
+      </div>
+      <!-- Dönüş Tarihi -->
+      <div class="form-group return-group" id="returnGroup">
+        <label>Dönüş Tarihi</label>
+        <div class="date-input-wrap">
+          <input id="returnDate" type="text" placeholder="Tarih seç..." readonly/>
+          <span class="cal-icon">📅</span>
+        </div>
+      </div>
+      <!-- Yetişkin -->
+      <div class="form-group">
+        <label>Yetişkin</label>
+        <input id="adults" type="number" value="1" min="1" max="9"/>
+      </div>
+      <!-- Çocuk -->
+      <div class="form-group">
+        <label>Çocuk</label>
+        <input id="children" type="number" value="0" min="0" max="9"/>
+      </div>
+    </div>
+
+    <!-- Aktarmasız seçeneği -->
+    <label class="nonstop-row" for="nonstopCheck">
+      <input type="checkbox" id="nonstopCheck"/>
+      <span class="nonstop-label">✈ Sadece Aktarmasız Uçuşlar</span>
+      <span class="nonstop-sub">Obilet'te filtreyi otomatik uygular</span>
+    </label>
+
+    <button class="search-btn" id="searchBtn" onclick="startSearch()">🔎 Ara</button>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span class="status-text" id="statusText">Yükleniyor...</span>
+  </div>
+  <div class="error-bar" id="errorBar"></div>
+
+  <div id="resultsSection" style="display:none">
+    <div class="results-header">
+      <span class="results-title" id="resultsTitle">Sonuçlar</span>
+      <span class="badge" id="flightCount">0 uçuş</span>
+    </div>
+    <div class="flights-list" id="flightsList"></div>
+    <p class="scraped-at" id="scrapedAt"></p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/tr.js"></script>
+<script>
+  // Flatpickr takvim başlat
+  const today = new Date();
+  const fpDep = flatpickr("#departureDate", {
+    locale: "tr",
+    minDate: "today",
+    dateFormat: "d.m.Y",
+    defaultDate: today,
+    disableMobile: true,
+    onChange: function(dates, dateStr) {
+      // Dönüş tarihi gidiş tarihinden önce olamaz
+      if (fpRet) fpRet.set("minDate", dateStr);
+    }
+  });
+  const fpRet = flatpickr("#returnDate", {
+    locale: "tr",
+    minDate: "today",
+    dateFormat: "d.m.Y",
+    disableMobile: true,
+  });
+
+  const CITIES = [
+    "İstanbul","Ankara","İzmir","Antalya","Trabzon","Adana",
+    "Bodrum","Dalaman","Gaziantep","Kayseri","Konya","Samsun",
+    "Erzurum","Diyarbakır","Van","Eskişehir","Hatay","Malatya",
+    "Nevşehir","Mardin","Elazığ","Kahramanmaraş"
+  ];
+
+  let tripType = "one-way";
+
+  function setTrip(t) {
+    tripType = t;
+    document.getElementById("btn-ow").classList.toggle("active", t==="one-way");
+    document.getElementById("btn-rt").classList.toggle("active", t==="round-trip");
+    document.getElementById("returnGroup").classList.toggle("show", t==="round-trip");
+  }
+
+  function showSuggestions(field, value) {
+    const listEl = document.getElementById(field + "-suggestions");
+    if (!value || value.length < 1) { listEl.classList.remove("show"); return; }
+    const normalize = s => s.toLowerCase()
+      .replace(/ı/g,"i").replace(/İ/g,"i").replace(/ğ/g,"g")
+      .replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c");
+    const filtered = CITIES.filter(c => normalize(c).includes(normalize(value)));
+    if (!filtered.length) { listEl.classList.remove("show"); return; }
+    listEl.innerHTML = filtered.map(c =>
+      `<div class="suggestion-item" onmousedown="selectCity('${field}','${c}')">✈️ ${c}</div>`
+    ).join("");
+    listEl.classList.add("show");
+  }
+
+  function selectCity(field, city) {
+    document.getElementById(field).value = city;
+    document.getElementById(field + "-suggestions").classList.remove("show");
+  }
+
+  function hideSuggestions(id) {
+    setTimeout(() => document.getElementById(id).classList.remove("show"), 200);
+  }
+
+  window.onload = async () => {
+    try {
+      const res = await fetch("data.json?" + Date.now());
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.searchConfig) {
+        const c = data.searchConfig;
+        document.getElementById("origin").value = c.origin || "";
+        document.getElementById("destination").value = c.destination || "";
+        if (c.departureDate) fpDep.setDate(c.departureDate, true, "d.m.Y");
+        if (c.returnDate) fpRet.setDate(c.returnDate, true, "d.m.Y");
+        document.getElementById("adults").value = c.adults || 1;
+        document.getElementById("children").value = c.children || 0;
+        if (c.tripType) setTrip(c.tripType);
+        if (c.nonStop) document.getElementById("nonstopCheck").checked = true;
+      }
+      if (data.flights && data.flights.length > 0) renderResults(data);
+    } catch(e) {}
+  };
+
+  async function startSearch() {
+    const origin = document.getElementById("origin").value.trim();
+    const destination = document.getElementById("destination").value.trim();
+    const departureDate = document.getElementById("departureDate").value.trim();
+    const returnDate = document.getElementById("returnDate").value.trim();
+    const adults = parseInt(document.getElementById("adults").value) || 1;
+    const children = parseInt(document.getElementById("children").value) || 0;
+    const nonStop = document.getElementById("nonstopCheck").checked;
+
+    if (!origin || !destination) { alert("Kalkış ve varış şehri zorunludur!"); return; }
+    if (!departureDate) { alert("Gidiş tarihi seçiniz!"); return; }
+    if (tripType === "round-trip" && !returnDate) { alert("Dönüş tarihi seçiniz!"); return; }
+
+    const config = { tripType, origin, destination, departureDate,
+      returnDate: tripType==="round-trip" ? returnDate : undefined,
+      adults, children, nonStop };
+
+    setLoading(true, "Obilet'te uçuşlar aranıyor... (1-2 dk)");
+    hideError();
+    document.getElementById("resultsSection").style.display = "none";
+
+    try {
+      const statusRes = await fetch("/status", { signal: AbortSignal.timeout(2000) });
+      if (!statusRes.ok) throw new Error("no-server");
+    } catch(e) {
+      setLoading(false);
+      showFallback(config);
+      return;
+    }
+
+    try {
+      const res = await fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config)
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (!res.ok) { showError("Hata: " + (data.error || "Bilinmeyen hata")); return; }
+      renderResults(data);
+    } catch(err) {
+      setLoading(false);
+      showError("Sunucuya bağlanılamadı. Terminalde 'npm run server' çalıştır.");
+    }
+  }
+
+  function setLoading(show, text) {
+    document.getElementById("statusBar").classList.toggle("show", show);
+    if (text) document.getElementById("statusText").textContent = text;
+    const btn = document.getElementById("searchBtn");
+    btn.disabled = show;
+    btn.textContent = show ? "⏳ Çalışıyor..." : "🔎 Ara";
+  }
+
+  function showError(msg) {
+    const bar = document.getElementById("errorBar");
+    bar.textContent = "❌ " + msg; bar.classList.add("show");
+  }
+  function hideError() { document.getElementById("errorBar").classList.remove("show"); }
+
+  function showFallback(config) {
+    document.getElementById("resultsSection").style.display = "block";
+    document.getElementById("flightsList").innerHTML = `
+      <div class="fallback-box">
+        <p style="color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:16px;">
+          ⚠️ <b>Sunucu modu aktif değil.</b> Terminalde <code>npm run server</code> komutunu çalıştır, sonra tekrar "Ara"ya bas.
+        </p>
+        <button class="reload-btn" onclick="location.reload()">🔄 Sayfayı Yenile</button>
+      </div>`;
+    document.getElementById("flightCount").textContent = "bekliyor";
+  }
+
+  function renderResults(data) {
+    const { searchConfig: c, flights, scrapedAt } = data;
+    document.getElementById("resultsSection").style.display = "block";
+    const nonstopTag = c.nonStop ? ' <span style="font-size:.75rem;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:20px;font-weight:600;">Aktarmasız</span>' : '';
+    document.getElementById("resultsTitle").textContent = "";
+    document.getElementById("resultsTitle").innerHTML = `${c.origin} → ${c.destination} · ${c.departureDate}${nonstopTag}`;
+    document.getElementById("flightCount").textContent = `${flights.length} uçuş`;
+    document.getElementById("scrapedAt").textContent = `Son güncelleme: ${new Date(scrapedAt).toLocaleString("tr-TR")}`;
+
+    if (!flights.length) {
+      document.getElementById("flightsList").innerHTML = '<div class="empty"><div class="icon">✈️</div><p>Uçuş bulunamadı.</p></div>';
+      return;
+    }
+
+    document.getElementById("flightsList").innerHTML = flights.map((f,i) => `
+      <div class="flight-wrap">
+        <span class="rank">${i+1}</span>
+        <div class="flight-card">
+          <div class="time-block">
+            <span class="time">${f.departureTime||"--:--"}</span>
+            <span class="city">${c.origin}</span>
+            <span class="airline-name">✈ ${f.airline||"?"}</span>
+          </div>
+          <div class="mid">
+            <div class="arr-line"><div class="line"></div><span>✈</span><div class="line"></div></div>
+            <span class="dur">${f.duration||"-"}</span>
+            <span class="dbadge ${f.isDirect?"direct":"indirect"}">${f.isDirect?"Direkt":"Aktarmalı"}</span>
+          </div>
+          <div class="time-block">
+            <span class="time">${f.arrivalTime||"--:--"}</span>
+            <span class="city">${c.destination}</span>
+          </div>
+          <div class="price-block">
+            <div class="price">${f.price||"—"}</div>
+            <div class="price-sub">kişi başı</div>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+</script>
+</body>
+</html>
