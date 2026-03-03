@@ -80,7 +80,7 @@ jobs:
         run: |
           cat > runner.js << 'EOF'
           const path = require('path');
-          const { runScraper } = require(path.join(__dirname, 'dist', 'scraper'));
+          const { runScraper } = require(path.join(__dirname, 'dist', 'src', 'scraper'));
           const fs = require('fs');
           const config = {
             tripType: 'one-way',
