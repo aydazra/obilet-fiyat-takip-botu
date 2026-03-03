@@ -1,38 +1,142 @@
-name: Obilet Uçuş Scraper
+name: 🛫 Obilet Uçuş Fiyat Scraper
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 * * * *'
+
   workflow_dispatch:
+    inputs:
+      origin:
+        description: 'Kalkış şehri'
+        required: false
+        default: 'Istanbul'
+      destination:
+        description: 'Varış şehri'
+        required: false
+        default: 'Ankara'
+      departure_date:
+        description: 'Tarih (GG.AA.YYYY)'
+        required: false
+        default: ''
+
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/scraper.yml'
 
 jobs:
   scrape:
+    name: Fiyat Taramasi
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Node.js kur
-        uses: actions/setup-node@v3
+      - name: Kodu Indir
+        uses: actions/checkout@v4
         with:
-          node-version: '18'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Chrome kur
+      - name: Node.js Kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Chrome Kur
         run: |
-          sudo apt-get update
+          sudo apt-get update -q
           sudo apt-get install -y google-chrome-stable
+          echo "PUPPETEER_EXECUTABLE_PATH=$(which google-chrome-stable)" >> $GITHUB_ENV
 
-      - name: Bağımlılıkları yükle
-        run: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true npm install
-
-      - name: Scraper çalıştır
-        run: npx ts-node src/scraper.ts
+      - name: Bagımlılıkları Yükle
         env:
-          CHROME_PATH: /usr/bin/google-chrome-stable
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+        run: npm ci
 
-      - name: Sonuçları kaydet
+      - name: TypeScript Derle
+        run: npm run build
+
+      - name: Parametreleri Ayarla
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add fiyatlar.json
-          git diff --staged --quiet || git commit -m "Fiyatlar güncellendi"
-          git push
+          ORIGIN="${{ github.event.inputs.origin }}"
+          DESTINATION="${{ github.event.inputs.destination }}"
+          DEP_DATE="${{ github.event.inputs.departure_date }}"
+          if [ -z "$DEP_DATE" ]; then
+            DEP_DATE=$(date -d "+3 days" +"%d.%m.%Y")
+          fi
+          [ -z "$ORIGIN" ]      && ORIGIN="Istanbul"
+          [ -z "$DESTINATION" ] && DESTINATION="Ankara"
+          echo "FLIGHT_ORIGIN=$ORIGIN"           >> $GITHUB_ENV
+          echo "FLIGHT_DESTINATION=$DESTINATION" >> $GITHUB_ENV
+          echo "FLIGHT_DATE=$DEP_DATE"           >> $GITHUB_ENV
+          echo "Kalkis: $ORIGIN | Varis: $DESTINATION | Tarih: $DEP_DATE"
+
+      - name: Scraper Calistir
+        env:
+          PUPPETEER_EXECUTABLE_PATH: ${{ env.PUPPETEER_EXECUTABLE_PATH }}
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+          FLIGHT_ORIGIN:      ${{ env.FLIGHT_ORIGIN }}
+          FLIGHT_DESTINATION: ${{ env.FLIGHT_DESTINATION }}
+          FLIGHT_DATE:        ${{ env.FLIGHT_DATE }}
+        run: |
+          node -e "
+            const { runScraper } = require('./dist/scraper');
+            const fs = require('fs');
+            const config = {
+              tripType: 'one-way',
+              origin: process.env.FLIGHT_ORIGIN || 'Istanbul',
+              destination: process.env.FLIGHT_DESTINATION || 'Ankara',
+              departureDate: process.env.FLIGHT_DATE,
+              adults: 1,
+              children: 0,
+              nonStop: false
+            };
+            console.log('Config:', config);
+            runScraper(config).then(result => {
+              fs.writeFileSync('fiyatlar.json', JSON.stringify(result, null, 2));
+              fs.mkdirSync('public', { recursive: true });
+              fs.writeFileSync('public/data.json', JSON.stringify(result, null, 2));
+              console.log('Bulunan ucus sayisi:', result.flights.length);
+              result.flights.forEach((f,i) => {
+                console.log((i+1)+'. '+f.airline+' | '+f.departureTime+' -> '+f.arrivalTime+' | '+f.price);
+              });
+            }).catch(err => {
+              console.error('Scraper hatasi:', err);
+              process.exit(1);
+            });
+          "
+
+      - name: Screenshot Yukle (hata varsa)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshot
+          path: debug-screenshot.png
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Sonuclari Kaydet
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flight-data-${{ github.run_number }}
+          path: |
+            fiyatlar.json
+            public/data.json
+          retention-days: 30
+
+      - name: Veriyi Repoya Commit Et
+        if: success()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "GitHub Actions Bot"
+          git add fiyatlar.json public/data.json
+          if git diff --staged --quiet; then
+            echo "Veri degismedi, commit atlaniyor."
+          else
+            FLIGHT_COUNT=$(node -e "const d=require('./fiyatlar.json'); console.log(d.flights.length)")
+            git commit -m "Otomatik guncelleme ($FLIGHT_COUNT ucus) [$(date '+%d.%m.%Y %H:%M')]"
+            git push
+          fi
