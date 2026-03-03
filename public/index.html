@@ -4,91 +4,315 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>✈️ Obilet Uçuş Fiyatları</title>
-  <!-- Flatpickr takvim kütüphanesi -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh;}
-    header{background:linear-gradient(135deg,#1a56db,#0e3a9b);color:white;padding:24px 40px;box-shadow:0 4px 12px rgba(0,0,0,.15);}
-    header h1{font-size:1.8rem;} header p{opacity:.8;margin-top:4px;font-size:.9rem;}
-    .container{max-width:960px;margin:32px auto;padding:0 20px;}
-    .card{background:white;border-radius:14px;padding:28px;margin-bottom:24px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
-    .card h2{font-size:1.1rem;color:#1a1a2e;margin-bottom:20px;}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
-    .form-group{display:flex;flex-direction:column;gap:6px;position:relative;}
-    label{font-size:.75rem;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.4px;}
-    input[type=text],input[type=number]{border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:.95rem;color:#1a1a2e;transition:border .2s;width:100%;}
-    input:focus{outline:none;border-color:#1a56db;}
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --blue:      #1a56db;
+      --blue-dark: #0e3a9b;
+      --blue-pale: #eff6ff;
+      --blue-mid:  #dbeafe;
+      --green:     #059669;
+      --green-pale:#d1fae5;
+      --red:       #dc2626;
+      --red-pale:  #fee2e2;
+      --gray-50:   #f9fafb;
+      --gray-100:  #f3f4f6;
+      --gray-200:  #e5e7eb;
+      --gray-400:  #9ca3af;
+      --gray-600:  #4b5563;
+      --gray-800:  #1f2937;
+      --radius:    12px;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,.07);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,.13);
+    }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:#f0f4f8; min-height:100vh; color:var(--gray-800); }
 
-    /* Takvim input — ikon göster */
-    .date-input-wrap{position:relative;}
-    .date-input-wrap input{padding-right:36px;cursor:pointer;}
-    .date-input-wrap .cal-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#888;font-size:1rem;}
+    /* ── HEADER ── */
+    header { background:linear-gradient(135deg,var(--blue),var(--blue-dark)); color:#fff; padding:22px 40px; box-shadow:0 4px 16px rgba(14,58,155,.25); }
+    header h1 { font-size:1.7rem; font-weight:800; letter-spacing:-.3px; }
+    header p  { opacity:.75; margin-top:3px; font-size:.88rem; }
 
-    /* flatpickr override */
-    .flatpickr-calendar{border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);border:none;}
-    .flatpickr-day.selected,.flatpickr-day.selected:hover{background:#1a56db;border-color:#1a56db;}
-    .flatpickr-day:hover{background:#eff6ff;}
+    /* ── LAYOUT ── */
+    .container { max-width:980px; margin:28px auto; padding:0 20px; }
 
-    /* Şehir önerisi */
-    .suggestions{position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #1a56db;border-top:none;border-radius:0 0 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:200;max-height:200px;overflow-y:auto;display:none;}
-    .suggestions.show{display:block;}
-    .suggestion-item{padding:10px 12px;cursor:pointer;font-size:.9rem;color:#1a1a2e;display:flex;align-items:center;gap:8px;transition:background .15s;}
-    .suggestion-item:hover{background:#eff6ff;color:#1a56db;}
+    /* ── CARDS ── */
+    .card { background:#fff; border-radius:var(--radius); padding:26px 28px; margin-bottom:20px; box-shadow:var(--shadow-sm); border:1px solid var(--gray-200); }
+    .card h2 { font-size:1rem; font-weight:700; color:var(--gray-800); margin-bottom:18px; }
 
-    .trip-row{display:flex;gap:12px;margin-bottom:20px;}
-    .trip-btn{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:8px;background:white;cursor:pointer;font-size:.9rem;font-weight:600;color:#666;transition:all .2s;}
-    .trip-btn.active{border-color:#1a56db;background:#eff6ff;color:#1a56db;}
-    .return-group{display:none;}
-    .return-group.show{display:flex;flex-direction:column;gap:6px;}
+    /* ── FORM ── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:5px; position:relative; }
+    label.field-label { font-size:.7rem; font-weight:700; color:var(--gray-600); text-transform:uppercase; letter-spacing:.5px; }
+    input[type=text], input[type=number] { border:1.5px solid var(--gray-200); border-radius:8px; padding:9px 12px; font-size:.9rem; font-family:inherit; color:var(--gray-800); transition:border .18s; width:100%; }
+    input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(26,86,219,.1); }
+    .date-input-wrap { position:relative; }
+    .date-input-wrap input { padding-right:34px; cursor:pointer; }
+    .date-input-wrap .cal-icon { position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; font-size:.95rem; }
+    .flatpickr-calendar { border-radius:12px; box-shadow:var(--shadow-lg); border:none; }
+    .flatpickr-day.selected, .flatpickr-day.selected:hover { background:var(--blue); border-color:var(--blue); }
+    .flatpickr-day:hover { background:var(--blue-pale); }
 
-    /* Aktarmasız checkbox */
-    .nonstop-row{display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 14px;background:#f8faff;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;user-select:none;}
-    .nonstop-row:hover{border-color:#1a56db;background:#eff6ff;}
-    .nonstop-row input[type=checkbox]{width:18px;height:18px;accent-color:#1a56db;cursor:pointer;flex-shrink:0;}
-    .nonstop-label{font-size:.9rem;font-weight:600;color:#1a1a2e;}
-    .nonstop-sub{font-size:.75rem;color:#888;margin-left:auto;}
+    .suggestions { position:absolute; top:100%; left:0; right:0; background:#fff; border:1.5px solid var(--blue); border-top:none; border-radius:0 0 8px 8px; box-shadow:var(--shadow-md); z-index:300; max-height:190px; overflow-y:auto; display:none; }
+    .suggestions.show { display:block; }
+    .suggestion-item { padding:9px 12px; cursor:pointer; font-size:.88rem; display:flex; align-items:center; gap:7px; transition:background .12s; }
+    .suggestion-item:hover { background:var(--blue-pale); color:var(--blue); }
 
-    .search-btn{width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,#1a56db,#0e3a9b);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;}
-    .search-btn:hover{opacity:.9;} .search-btn:disabled{opacity:.6;cursor:not-allowed;}
+    .trip-row { display:flex; gap:10px; margin-bottom:18px; }
+    .trip-btn { flex:1; padding:9px; border:2px solid var(--gray-200); border-radius:8px; background:#fff; cursor:pointer; font-size:.88rem; font-weight:700; color:var(--gray-600); transition:all .18s; font-family:inherit; }
+    .trip-btn.active { border-color:var(--blue); background:var(--blue-pale); color:var(--blue); }
+    .return-group { display:none; }
+    .return-group.show { display:flex; flex-direction:column; gap:5px; }
 
-    .status-bar{display:none;align-items:center;gap:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 18px;margin-bottom:20px;}
-    .status-bar.show{display:flex;}
-    .spinner{width:22px;height:22px;border:3px solid #bfdbfe;border-top-color:#1a56db;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    .status-text{font-size:.9rem;color:#1d4ed8;font-weight:500;}
-    .error-bar{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;margin-bottom:20px;color:#991b1b;font-size:.9rem;}
-    .error-bar.show{display:block;}
+    .nonstop-row { display:flex; align-items:center; gap:10px; margin-top:14px; padding:11px 13px; background:var(--gray-50); border:1.5px solid var(--gray-200); border-radius:8px; cursor:pointer; user-select:none; }
+    .nonstop-row:hover { border-color:var(--blue); background:var(--blue-pale); }
+    .nonstop-row input[type=checkbox] { width:17px; height:17px; accent-color:var(--blue); cursor:pointer; flex-shrink:0; }
+    .nonstop-label { font-size:.88rem; font-weight:700; }
+    .nonstop-sub { font-size:.73rem; color:var(--gray-400); margin-left:auto; }
 
-    .results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-    .results-title{font-size:1rem;font-weight:700;color:#1a1a2e;}
-    .badge{padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:600;background:#dbeafe;color:#1d4ed8;}
-    .flights-list{display:flex;flex-direction:column;gap:14px;}
-    .flight-wrap{position:relative;}
-    .rank{position:absolute;top:-10px;left:18px;background:#1a56db;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;z-index:1;}
-    .flight-card{background:white;border-radius:12px;padding:20px 24px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:grid;grid-template-columns:1fr auto 1fr auto;align-items:center;gap:16px;transition:transform .15s,box-shadow .15s;}
-    .flight-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
-    .time-block{display:flex;flex-direction:column;}
-    .time{font-size:1.6rem;font-weight:700;color:#1a1a2e;}
-    .city{font-size:.78rem;color:#999;margin-top:2px;}
-    .airline-name{font-size:.85rem;color:#444;margin-top:6px;font-weight:600;}
-    .mid{text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:110px;}
-    .arr-line{display:flex;align-items:center;gap:4px;width:100%;}
-    .line{flex:1;height:2px;background:#e5e7eb;}
-    .dur{font-size:.78rem;color:#999;}
-    .dbadge{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:700;}
-    .direct{background:#d1fae5;color:#065f46;} .indirect{background:#fee2e2;color:#991b1b;}
-    .price-block{text-align:right;}
-    .price{font-size:1.3rem;font-weight:700;color:#1a56db;}
-    .price-sub{font-size:.72rem;color:#bbb;}
-    .empty{text-align:center;padding:60px 20px;color:#aaa;}
-    .empty .icon{font-size:3rem;margin-bottom:12px;}
-    .scraped-at{text-align:center;font-size:.78rem;color:#bbb;margin-top:20px;}
-    .fallback-box{background:white;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
-    pre{background:#1e1e2e;color:#a8ff78;padding:16px;border-radius:8px;margin:10px 0;font-size:.83rem;overflow-x:auto;white-space:pre-wrap;}
-    code{background:#f3f4f6;padding:2px 8px;border-radius:4px;}
-    .reload-btn{padding:10px 24px;background:#1a56db;color:white;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;margin-top:12px;}
-    @media(max-width:640px){.form-grid{grid-template-columns:1fr 1fr;}.flight-card{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;}.price-block{grid-column:2;grid-row:1;}.mid{grid-column:1/-1;}}
+    .search-btn { width:100%; margin-top:14px; padding:13px; background:linear-gradient(135deg,var(--blue),var(--blue-dark)); color:#fff; border:none; border-radius:9px; font-size:.95rem; font-weight:800; cursor:pointer; font-family:inherit; transition:opacity .15s; }
+    .search-btn:hover { opacity:.9; }
+    .search-btn:disabled { opacity:.6; cursor:not-allowed; }
+
+    /* ── STATUS ── */
+    .status-bar { display:none; align-items:center; gap:12px; background:var(--blue-pale); border:1px solid var(--blue-mid); border-radius:10px; padding:13px 16px; margin-bottom:18px; }
+    .status-bar.show { display:flex; }
+    .spinner { width:20px; height:20px; border:3px solid var(--blue-mid); border-top-color:var(--blue); border-radius:50%; animation:spin .75s linear infinite; flex-shrink:0; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .status-text { font-size:.88rem; color:#1d4ed8; font-weight:600; }
+    .error-bar { display:none; background:var(--red-pale); border:1px solid #fecaca; border-radius:10px; padding:13px 16px; margin-bottom:18px; color:#991b1b; font-size:.88rem; }
+    .error-bar.show { display:block; }
+
+    /* ════════════════════════════════════════════
+       ── FİLTRE & SIRALAMA BARI  (Obilet style) ──
+       ════════════════════════════════════════════ */
+    #filterBar {
+      background:#fff;
+      border-radius:var(--radius);
+      border:1px solid var(--gray-200);
+      box-shadow:var(--shadow-sm);
+      margin-bottom:16px;
+      overflow:visible;
+      animation:fadeIn .25s ease;
+    }
+
+    /* Üst satır: Sıralama + Hızlı Filtreler */
+    .filter-top {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 16px;
+      border-bottom:1px solid var(--gray-100);
+      flex-wrap:wrap;
+    }
+
+    /* Sıralama dropdown */
+    .sort-wrapper { position:relative; }
+    .sort-btn {
+      display:flex; align-items:center; gap:7px;
+      padding:9px 16px; border:1.5px solid var(--gray-200); border-radius:8px;
+      background:#fff; cursor:pointer; font-size:.88rem; font-weight:700; font-family:inherit;
+      color:var(--gray-800); transition:all .18s; white-space:nowrap;
+    }
+    .sort-btn:hover, .sort-btn.open { border-color:var(--blue); color:var(--blue); background:var(--blue-pale); }
+    .sort-arrow { font-size:.65rem; transition:transform .2s; }
+    .sort-btn.open .sort-arrow { transform:rotate(180deg); }
+    .sort-dropdown {
+      position:absolute; top:calc(100% + 8px); left:0; min-width:220px;
+      background:#fff; border:1.5px solid var(--blue); border-radius:12px;
+      box-shadow:var(--shadow-lg); z-index:9999; overflow:hidden;
+      display:none; animation:dropDown .15s ease;
+    }
+    .sort-dropdown.show { display:block; }
+    @keyframes dropDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    .sort-option {
+      display:flex; align-items:center; gap:10px;
+      padding:13px 16px; cursor:pointer; font-size:.9rem; font-weight:600;
+      color:var(--gray-800); transition:background .12s; border-bottom:1px solid var(--gray-100);
+    }
+    .sort-option:last-child { border-bottom:none; }
+    .sort-option:hover { background:var(--blue-pale); color:var(--blue); }
+    .sort-option.active { background:var(--blue-pale); color:var(--blue); }
+    .sort-option .sort-ico { font-size:1rem; width:20px; text-align:center; }
+
+    /* Divider */
+    .filter-divider { width:1px; height:22px; background:var(--gray-200); flex-shrink:0; }
+
+    /* Hızlı Zaman Filtreleri */
+    .quick-filters { display:flex; gap:7px; flex-wrap:wrap; flex:1; align-items:center; }
+    .qf-label { font-size:.72rem; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:.4px; white-space:nowrap; }
+    .qf-btn {
+      padding:6px 12px; border:1.5px solid var(--gray-200); border-radius:20px;
+      background:#fff; cursor:pointer; font-size:.78rem; font-weight:700; font-family:inherit;
+      color:var(--gray-600); transition:all .16s; white-space:nowrap;
+    }
+    .qf-btn:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-pale); }
+    .qf-btn.active { border-color:var(--blue); background:var(--blue); color:#fff; }
+
+    /* Alt satır: Dropdown filtreler */
+    .filter-bottom {
+      display:flex; align-items:center; gap:8px;
+      padding:10px 16px; flex-wrap:wrap;
+    }
+    .fd-select {
+      display:flex; align-items:center; gap:6px;
+      padding:8px 13px; border:1.5px solid var(--gray-200); border-radius:8px;
+      background:#fff; cursor:pointer; font-size:.85rem; font-weight:700; font-family:inherit;
+      color:var(--gray-700); transition:all .16s; white-space:nowrap; position:relative;
+    }
+    .fd-select:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-pale); }
+    .fd-select.active { border-color:var(--blue); color:var(--blue); }
+    .fd-caret { font-size:.6rem; }
+
+    /* Aktarma inline dropdown */
+    .fd-popup {
+      position:absolute; top:calc(100% + 8px); left:0; min-width:200px;
+      background:#fff; border:1.5px solid var(--blue); border-radius:12px;
+      box-shadow:var(--shadow-lg); z-index:9999; padding:6px 0;
+      display:none; animation:dropDown .15s ease;
+    }
+    .fd-popup.show { display:block; }
+    .fd-popup-opt {
+      display:flex; align-items:center; gap:10px;
+      padding:11px 16px; cursor:pointer; font-size:.88rem; font-weight:600;
+      color:var(--gray-800); transition:background .12s;
+    }
+    .fd-popup-opt:hover { background:var(--blue-pale); color:var(--blue); }
+    .fd-popup-opt.active { background:var(--blue-pale); color:var(--blue); }
+    .fd-check { width:16px; height:16px; border:2px solid var(--gray-300); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:.7rem; transition:all .15s; }
+    .fd-popup-opt.active .fd-check { background:var(--blue); border-color:var(--blue); color:#fff; }
+
+    /* Aktif filtre özeti pill */
+    .active-filters { display:flex; gap:6px; flex-wrap:wrap; padding:0 16px 10px; }
+    .active-filters:empty { display:none; }
+    .af-pill {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 11px; background:var(--blue-pale); border:1px solid var(--blue-mid);
+      border-radius:20px; font-size:.75rem; font-weight:700; color:var(--blue); cursor:pointer;
+      transition:background .15s;
+    }
+    .af-pill:hover { background:var(--blue-mid); }
+    .af-pill .x { font-size:.8rem; opacity:.7; }
+    .af-clear-all {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:4px 11px; background:#fff; border:1px solid var(--gray-200);
+      border-radius:20px; font-size:.75rem; font-weight:700; color:var(--gray-600); cursor:pointer;
+    }
+    .af-clear-all:hover { border-color:var(--red); color:var(--red); }
+
+    /* Sıralama göstergesi */
+    .sort-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 11px; background:#fef3c7; border:1px solid #fde68a;
+      border-radius:20px; font-size:.75rem; font-weight:700; color:#92400e;
+    }
+
+    /* ── RESULTS ── */
+    .results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+    .results-title { font-size:.98rem; font-weight:800; color:var(--gray-800); }
+    .badge { padding:4px 13px; border-radius:20px; font-size:.78rem; font-weight:700; background:var(--blue-mid); color:#1d4ed8; }
+    .flights-list { display:flex; flex-direction:column; gap:12px; }
+
+    .flight-wrap { position:relative; }
+    .rank { position:absolute; top:-9px; left:16px; background:var(--blue); color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800; z-index:1; }
+    .flight-card {
+      background:#fff; border-radius:11px; padding:18px 22px;
+      box-shadow:var(--shadow-sm); border:1px solid var(--gray-200);
+      display:grid; grid-template-columns:1fr auto 1fr auto; align-items:center; gap:14px;
+      transition:transform .15s, box-shadow .15s;
+    }
+    .flight-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+    .flight-card.hidden { display:none; }
+    .time-block { display:flex; flex-direction:column; }
+    .time { font-size:1.55rem; font-weight:800; color:var(--gray-800); }
+    .city { font-size:.74rem; color:var(--gray-400); margin-top:2px; }
+    .airline-name { font-size:.82rem; color:var(--gray-600); margin-top:5px; font-weight:700; }
+    .mid { text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:100px; }
+    .arr-line { display:flex; align-items:center; gap:4px; width:100%; }
+    .line { flex:1; height:2px; background:var(--gray-200); }
+    .dur { font-size:.74rem; color:var(--gray-400); }
+    .dbadge { font-size:.68rem; padding:3px 9px; border-radius:20px; font-weight:800; }
+    .direct { background:var(--green-pale); color:var(--green); }
+    .indirect { background:var(--red-pale); color:var(--red); }
+    .price-block { text-align:right; }
+    .price { font-size:1.25rem; font-weight:800; color:var(--blue); }
+    .price-sub { font-size:.7rem; color:var(--gray-400); }
+
+    .empty { text-align:center; padding:54px 20px; color:var(--gray-400); }
+    .empty .icon { font-size:2.8rem; margin-bottom:10px; }
+    .scraped-at { text-align:center; font-size:.74rem; color:var(--gray-400); margin-top:18px; }
+
+    /* ── GİDİŞ-DÖNÜŞ ADIM BAR ── */
+    .step-bar {
+      display:none; align-items:stretch; gap:0;
+      background:#fff; border-radius:var(--radius);
+      border:1px solid var(--gray-200); box-shadow:var(--shadow-sm);
+      margin-bottom:16px; overflow:hidden;
+    }
+    .step-bar.show { display:flex; }
+    .step-item {
+      flex:1; display:flex; align-items:center; gap:10px;
+      padding:14px 20px; transition:background .2s;
+      border-right:1px solid var(--gray-200);
+    }
+    .step-item:last-child { border-right:none; }
+    .step-item.active  { background:var(--blue-pale); }
+    .step-item.done    { background:var(--green-pale); cursor:pointer; }
+    .step-item.done:hover { background:#bbf7d0; }
+    .step-item.pending { background:var(--gray-50); }
+    .step-num {
+      width:28px; height:28px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.8rem; font-weight:800; flex-shrink:0;
+      background:var(--gray-200); color:var(--gray-600);
+    }
+    .step-item.active  .step-num { background:var(--blue); color:#fff; }
+    .step-item.done    .step-num { background:var(--green); color:#fff; }
+    .step-info { display:flex; flex-direction:column; gap:2px; flex:1; }
+    .step-label { font-size:.68rem; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:.4px; }
+    .step-item.active  .step-label { color:var(--blue); }
+    .step-item.done    .step-label { color:var(--green); }
+    .step-value { font-size:.86rem; font-weight:700; color:var(--gray-800); }
+    .step-item.pending .step-value { color:var(--gray-400); }
+    .step-edit-hint { font-size:.7rem; color:var(--green); font-weight:600; }
+
+    /* Seçilmiş gidiş uçuşu banner */
+    .selected-banner {
+      background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+      border:1.5px solid #86efac; border-radius:var(--radius);
+      padding:13px 18px; margin-bottom:14px;
+      display:none; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    .selected-banner.show { display:flex; }
+    .sb-tag { background:var(--green); color:#fff; font-size:.72rem; font-weight:800; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+    .sb-info { flex:1; font-size:.88rem; font-weight:700; color:#065f46; }
+    .sb-change { font-size:.78rem; color:var(--green); text-decoration:underline; cursor:pointer; font-weight:600; white-space:nowrap; }
+
+    /* Dönüş bölümü başlık bandı */
+    .return-section-title {
+      display:none; align-items:center; gap:10px;
+      padding:11px 16px; background:linear-gradient(135deg,#eff6ff,#dbeafe);
+      border:1.5px solid var(--blue-mid); border-radius:var(--radius);
+      margin-bottom:12px; font-weight:800; color:var(--blue); font-size:.9rem;
+    }
+    .return-section-title.show { display:flex; }
+
+    .fallback-box { background:#fff; border-radius:var(--radius); padding:26px; box-shadow:var(--shadow-sm); }
+    pre { background:#1e1e2e; color:#a8ff78; padding:14px; border-radius:8px; margin:8px 0; font-size:.82rem; overflow-x:auto; white-space:pre-wrap; }
+    code { background:var(--gray-100); padding:2px 7px; border-radius:4px; font-size:.85em; }
+    .reload-btn { padding:9px 22px; background:var(--blue); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:.9rem; margin-top:10px; font-family:inherit; font-weight:700; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+    @media(max-width:640px) {
+      .form-grid { grid-template-columns:1fr 1fr; }
+      .flight-card { grid-template-columns:1fr 1fr; grid-template-rows:auto auto; }
+      .price-block { grid-column:2; grid-row:1; }
+      .mid { grid-column:1/-1; }
+      .filter-top { gap:7px; }
+    }
   </style>
 </head>
 <body>
@@ -97,6 +321,8 @@
   <p>Şehir seç, tarihi gir, "Ara" butonuna bas</p>
 </header>
 <div class="container">
+
+  <!-- ── ARAMA FORMU ── -->
   <div class="card">
     <h2>🔍 Uçuş Ara</h2>
     <div class="trip-row">
@@ -104,69 +330,187 @@
       <button class="trip-btn" id="btn-rt" onclick="setTrip('round-trip')">🔄 Gidiş-Dönüş</button>
     </div>
     <div class="form-grid">
-      <!-- Kalkış -->
       <div class="form-group">
-        <label>Kalkış Şehri</label>
+        <label class="field-label">Kalkış Şehri</label>
         <input id="origin" type="text" placeholder="Şehir ara..." autocomplete="off"
                oninput="showSuggestions('origin', this.value)"
-               onblur="hideSuggestions('origin-suggestions')"
-               value="İstanbul"/>
+               onblur="hideSuggestions('origin-suggestions')" value="İstanbul"/>
         <div class="suggestions" id="origin-suggestions"></div>
       </div>
-      <!-- Varış -->
       <div class="form-group">
-        <label>Varış Şehri</label>
+        <label class="field-label">Varış Şehri</label>
         <input id="destination" type="text" placeholder="Şehir ara..." autocomplete="off"
                oninput="showSuggestions('destination', this.value)"
-               onblur="hideSuggestions('destination-suggestions')"
-               value="Ankara"/>
+               onblur="hideSuggestions('destination-suggestions')" value="Ankara"/>
         <div class="suggestions" id="destination-suggestions"></div>
       </div>
-      <!-- Gidiş Tarihi -->
       <div class="form-group">
-        <label>Gidiş Tarihi</label>
+        <label class="field-label">Gidiş Tarihi</label>
         <div class="date-input-wrap">
           <input id="departureDate" type="text" placeholder="Tarih seç..." readonly/>
           <span class="cal-icon">📅</span>
         </div>
       </div>
-      <!-- Dönüş Tarihi -->
       <div class="form-group return-group" id="returnGroup">
-        <label>Dönüş Tarihi</label>
+        <label class="field-label">Dönüş Tarihi</label>
         <div class="date-input-wrap">
           <input id="returnDate" type="text" placeholder="Tarih seç..." readonly/>
           <span class="cal-icon">📅</span>
         </div>
       </div>
-      <!-- Yetişkin -->
       <div class="form-group">
-        <label>Yetişkin</label>
+        <label class="field-label">Yetişkin</label>
         <input id="adults" type="number" value="1" min="1" max="9"/>
       </div>
-      <!-- Çocuk -->
       <div class="form-group">
-        <label>Çocuk</label>
+        <label class="field-label">Çocuk</label>
         <input id="children" type="number" value="0" min="0" max="9"/>
       </div>
     </div>
-
-    <!-- Aktarmasız seçeneği -->
     <label class="nonstop-row" for="nonstopCheck">
       <input type="checkbox" id="nonstopCheck"/>
       <span class="nonstop-label">✈ Sadece Aktarmasız Uçuşlar</span>
       <span class="nonstop-sub">Obilet'te filtreyi otomatik uygular</span>
     </label>
-
     <button class="search-btn" id="searchBtn" onclick="startSearch()">🔎 Ara</button>
   </div>
 
+  <!-- ── STATUS / ERROR ── -->
   <div class="status-bar" id="statusBar">
     <div class="spinner"></div>
     <span class="status-text" id="statusText">Yükleniyor...</span>
   </div>
   <div class="error-bar" id="errorBar"></div>
 
+  <!-- ── SONUÇLAR ── -->
   <div id="resultsSection" style="display:none">
+
+    <!-- ── GİDİŞ-DÖNÜŞ ADIM ÇUBUĞU ── -->
+    <div class="step-bar" id="stepBar">
+      <div class="step-item" id="step1" onclick="goBackToOutbound()">
+        <div class="step-num" id="step1Num">1</div>
+        <div class="step-info">
+          <span class="step-label">Gidiş Uçuşu</span>
+          <span class="step-value" id="step1Value">Seçiliyor...</span>
+          <span class="step-edit-hint" id="step1Edit"></span>
+        </div>
+      </div>
+      <div class="step-item pending" id="step2">
+        <div class="step-num" id="step2Num">2</div>
+        <div class="step-info">
+          <span class="step-label">Dönüş Uçuşu</span>
+          <span class="step-value" id="step2Value">Bekleniyor...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEÇİLEN GİDİŞ UÇUŞU BANNER ── -->
+    <div class="selected-banner" id="selectedBanner">
+      <span class="sb-tag">✅ Gidiş Seçildi</span>
+      <span class="sb-info" id="selectedBannerInfo"></span>
+      <span class="sb-change" onclick="goBackToOutbound()">✏️ Değiştir</span>
+    </div>
+
+    <!-- ── DÖNÜŞ BÖLÜMÜ BAŞLIK ── -->
+    <div class="return-section-title" id="returnSectionTitle">
+      🔄 Dönüş Uçuşunu Seçin
+    </div>
+
+    <!-- ════ FİLTRE & SIRALAMA BARI ════ -->
+    <div id="filterBar">
+
+      <!-- Üst Satır: Sıralama + Zaman Filtreleri -->
+      <div class="filter-top">
+
+        <!-- Sıralama Dropdown -->
+        <div class="sort-wrapper" id="sortWrapper">
+          <button class="sort-btn" id="sortBtn" onclick="toggleSort()">
+            <span>⇅</span>
+            <span>Sırala <b id="sortLabel">Fiyat</b></span>
+            <span class="sort-arrow" id="sortArrow">▼</span>
+          </button>
+          <div class="sort-dropdown" id="sortDropdown">
+            <div class="sort-option active" id="sort-price" onclick="setSort('price')">
+              <span class="sort-ico">💰</span> Fiyata Göre
+            </div>
+            <div class="sort-option" id="sort-time" onclick="setSort('time')">
+              <span class="sort-ico">🕐</span> Kalkış Saatine Göre
+            </div>
+            <div class="sort-option" id="sort-duration" onclick="setSort('duration')">
+              <span class="sort-ico">⏱</span> Uçuş Süresine Göre
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Hızlı Zaman Filtreleri -->
+        <div class="quick-filters">
+          <span class="qf-label">Hızlı Filtreler:</span>
+          <button class="qf-btn" id="qf-0006" onclick="toggleQuickFilter('0006','00:00 - 06:00')">00:00 - 06:00</button>
+          <button class="qf-btn" id="qf-0612" onclick="toggleQuickFilter('0612','06:00 - 12:00')">06:00 - 12:00</button>
+          <button class="qf-btn" id="qf-1218" onclick="toggleQuickFilter('1218','12:00 - 18:00')">12:00 - 18:00</button>
+          <button class="qf-btn" id="qf-1823" onclick="toggleQuickFilter('1823','18:00 - 23:59')">18:00 - 23:59</button>
+        </div>
+
+      </div>
+
+      <!-- Alt Satır: Dropdown Filtreler -->
+      <div class="filter-bottom">
+
+        <!-- Aktarma -->
+        <div class="fd-select" id="fdAktarma" onclick="toggleFdPopup('aktarmaPopup', 'fdAktarma')">
+          <span>Aktarma</span>
+          <span id="fdAktarmaVal"></span>
+          <span class="fd-caret">▼</span>
+          <div class="fd-popup" id="aktarmaPopup">
+            <div class="fd-popup-opt" id="fdopt-direct" onclick="toggleTransfer('direct',event)">
+              <span class="fd-check" id="fdchk-direct"></span> Aktarmasız
+            </div>
+            <div class="fd-popup-opt" id="fdopt-one" onclick="toggleTransfer('one',event)">
+              <span class="fd-check" id="fdchk-one"></span> 1 Aktarma
+            </div>
+            <div class="fd-popup-opt" id="fdopt-multi" onclick="toggleTransfer('multi',event)">
+              <span class="fd-check" id="fdchk-multi"></span> 2+ Aktarma
+            </div>
+          </div>
+        </div>
+
+        <!-- Kalkış Saati -->
+        <div class="fd-select" id="fdKalkis" onclick="toggleFdPopup('kalkisPopup', 'fdKalkis')">
+          <span>Kalkış Saati</span>
+          <span id="fdKalkisVal"></span>
+          <span class="fd-caret">▼</span>
+          <div class="fd-popup" id="kalkisPopup">
+            <div class="fd-popup-opt" id="fdopt-k0006" onclick="toggleKalkisFilter('0006','00:00-06:00',event)">
+              <span class="fd-check" id="fdchk-k0006"></span> 00:00 - 06:00
+            </div>
+            <div class="fd-popup-opt" id="fdopt-k0612" onclick="toggleKalkisFilter('0612','06:00-12:00',event)">
+              <span class="fd-check" id="fdchk-k0612"></span> 06:00 - 12:00
+            </div>
+            <div class="fd-popup-opt" id="fdopt-k1218" onclick="toggleKalkisFilter('1218','12:00-18:00',event)">
+              <span class="fd-check" id="fdchk-k1218"></span> 12:00 - 18:00
+            </div>
+            <div class="fd-popup-opt" id="fdopt-k1823" onclick="toggleKalkisFilter('1823','18:00-23:59',event)">
+              <span class="fd-check" id="fdchk-k1823"></span> 18:00 - 23:59
+            </div>
+          </div>
+        </div>
+
+        <!-- Fiyat aralığı göstergesi -->
+        <div class="fd-select" id="fdFiyat" style="cursor:default;">
+          <span>💰 Fiyat Aralığı:</span>
+          <span id="fdFiyatRange" style="color:var(--blue);font-weight:800;margin-left:4px;">—</span>
+        </div>
+
+      </div>
+
+      <!-- Aktif Filtre Pilleri -->
+      <div class="active-filters" id="activePills"></div>
+
+    </div>
+    <!-- ════ FİLTRE BARI SONU ════ -->
+
     <div class="results-header">
       <span class="results-title" id="resultsTitle">Sonuçlar</span>
       <span class="badge" id="flightCount">0 uçuş</span>
@@ -174,201 +518,658 @@
     <div class="flights-list" id="flightsList"></div>
     <p class="scraped-at" id="scrapedAt"></p>
   </div>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/tr.js"></script>
 <script>
-  // Flatpickr takvim başlat
-  const today = new Date();
-  const fpDep = flatpickr("#departureDate", {
-    locale: "tr",
-    minDate: "today",
-    dateFormat: "d.m.Y",
-    defaultDate: today,
-    disableMobile: true,
-    onChange: function(dates, dateStr) {
-      // Dönüş tarihi gidiş tarihinden önce olamaz
-      if (fpRet) fpRet.set("minDate", dateStr);
+/* ═══════════════════════════════════════
+   FLATPICKR
+═══════════════════════════════════════ */
+const today = new Date();
+const fpDep = flatpickr("#departureDate", {
+  locale:"tr", minDate:"today", dateFormat:"d.m.Y", defaultDate:today, disableMobile:true,
+  onChange:(d,s)=>{ if(fpRet) fpRet.set("minDate",s); }
+});
+const fpRet = flatpickr("#returnDate", {
+  locale:"tr", minDate:"today", dateFormat:"d.m.Y", disableMobile:true
+});
+
+/* ═══════════════════════════════════════
+   ŞEHİR ÖNERİLERİ
+═══════════════════════════════════════ */
+const CITIES = ["İstanbul","Ankara","İzmir","Antalya","Trabzon","Adana","Bodrum","Dalaman",
+  "Gaziantep","Kayseri","Konya","Samsun","Erzurum","Diyarbakır","Van","Eskişehir",
+  "Hatay","Malatya","Nevşehir","Mardin","Elazığ","Kahramanmaraş"];
+
+let tripType = "one-way";
+function setTrip(t){
+  tripType=t;
+  document.getElementById("btn-ow").classList.toggle("active",t==="one-way");
+  document.getElementById("btn-rt").classList.toggle("active",t==="round-trip");
+  document.getElementById("returnGroup").classList.toggle("show",t==="round-trip");
+}
+const normalize = s => s.toLowerCase()
+  .replace(/ı/g,"i").replace(/İ/g,"i").replace(/ğ/g,"g")
+  .replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c");
+function showSuggestions(field,value){
+  const el=document.getElementById(field+"-suggestions");
+  if(!value){el.classList.remove("show");return;}
+  const f=CITIES.filter(c=>normalize(c).includes(normalize(value)));
+  if(!f.length){el.classList.remove("show");return;}
+  el.innerHTML=f.map(c=>`<div class="suggestion-item" onmousedown="selectCity('${field}','${c}')">✈️ ${c}</div>`).join("");
+  el.classList.add("show");
+}
+function selectCity(f,c){
+  document.getElementById(f).value=c;
+  document.getElementById(f+"-suggestions").classList.remove("show");
+}
+function hideSuggestions(id){ setTimeout(()=>document.getElementById(id).classList.remove("show"),200); }
+
+/* ═══════════════════════════════════════
+   ARAMA
+═══════════════════════════════════════ */
+async function startSearch(){
+  const origin=document.getElementById("origin").value.trim();
+  const destination=document.getElementById("destination").value.trim();
+  const departureDate=document.getElementById("departureDate").value.trim();
+  const returnDate=document.getElementById("returnDate").value.trim();
+  const adults=parseInt(document.getElementById("adults").value)||1;
+  const children=parseInt(document.getElementById("children").value)||0;
+  const nonStop=document.getElementById("nonstopCheck").checked;
+  if(!origin||!destination){alert("Kalkış ve varış şehri zorunludur!");return;}
+  if(!departureDate){alert("Gidiş tarihi seçiniz!");return;}
+  if(tripType==="round-trip"&&!returnDate){alert("Dönüş tarihi seçiniz!");return;}
+  const config={tripType,origin,destination,departureDate,
+    returnDate:tripType==="round-trip"?returnDate:undefined,adults,children,nonStop};
+  setLoading(true,"Obilet'te uçuşlar aranıyor... (1-2 dk)");
+  hideError();
+  document.getElementById("resultsSection").style.display="none";
+  try{
+    const sr=await fetch("/status",{signal:AbortSignal.timeout(2000)});
+    if(!sr.ok) throw new Error("no-server");
+  }catch(e){setLoading(false);showFallback(config);return;}
+  try{
+    const res=await fetch("/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(config)});
+    const data=await res.json();
+    setLoading(false);
+    if(!res.ok){showError("Hata: "+(data.error||"Bilinmeyen hata"));return;}
+    renderResults(data);
+  }catch(err){
+    setLoading(false);
+    showError("Sunucuya bağlanılamadı. Terminalde 'npm run server' çalıştır.");
+  }
+}
+function setLoading(show,text){
+  document.getElementById("statusBar").classList.toggle("show",show);
+  if(text) document.getElementById("statusText").textContent=text;
+  const btn=document.getElementById("searchBtn");
+  btn.disabled=show; btn.textContent=show?"⏳ Çalışıyor...":"🔎 Ara";
+}
+function showError(msg){const b=document.getElementById("errorBar");b.textContent="❌ "+msg;b.classList.add("show");}
+function hideError(){document.getElementById("errorBar").classList.remove("show");}
+function showFallback(config){
+  document.getElementById("resultsSection").style.display="block";
+  document.getElementById("flightsList").innerHTML=`
+    <div class="fallback-box">
+      <p style="color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:16px;">
+        ⚠️ <b>Sunucu modu aktif değil.</b> Terminalde <code>npm run server</code> komutunu çalıştır, sonra tekrar "Ara"ya bas.
+      </p>
+      <button class="reload-btn" onclick="location.reload()">🔄 Sayfayı Yenile</button>
+    </div>`;
+  document.getElementById("flightCount").textContent="bekliyor";
+}
+
+/* ═══════════════════════════════════════
+   FİLTRE & SIRALAMA STATE
+═══════════════════════════════════════ */
+let allFlights   = [];
+let currentConfig= {};
+let sortMode     = "price";           // "price" | "time" | "duration"
+let activeQF     = new Set();         // quick filter keys
+let transferSel  = new Set();         // "direct","one","multi"
+let kalkisSel    = new Set();         // "0006","0612","1218","1823"
+
+/* ── Sıralama ── */
+function toggleSort(){
+  const btn=document.getElementById("sortBtn");
+  const dd=document.getElementById("sortDropdown");
+  btn.classList.toggle("open");
+  dd.classList.toggle("show");
+}
+function setSort(mode){
+  sortMode=mode;
+  document.querySelectorAll(".sort-option").forEach(o=>o.classList.remove("active"));
+  document.getElementById("sort-"+mode).classList.add("active");
+  const labels={"price":"Fiyat","time":"Kalkış Saati","duration":"Uçuş Süresi"};
+  document.getElementById("sortLabel").textContent=labels[mode];
+  document.getElementById("sortBtn").classList.remove("open");
+  document.getElementById("sortDropdown").classList.remove("show");
+  applyFiltersAndSort();
+}
+
+/* ── Hızlı Zaman Filtreleri (üst satır pill) ── */
+function toggleQuickFilter(key, label){
+  const btn=document.getElementById("qf-"+key);
+  if(activeQF.has(key)){
+    activeQF.delete(key);
+    btn.classList.remove("active");
+    // kalkış saati popup'ını da sync et
+    kalkisSel.delete(key);
+    syncKalkisPopup();
+  } else {
+    activeQF.add(key);
+    btn.classList.add("active");
+    kalkisSel.add(key);
+    syncKalkisPopup();
+  }
+  applyFiltersAndSort();
+}
+
+/* ── Aktarma Filtresi ── */
+function toggleFdPopup(popupId, parentId){
+  // close all others first
+  document.querySelectorAll(".fd-popup").forEach(p=>{
+    if(p.id!==popupId) p.classList.remove("show");
+  });
+  document.querySelectorAll(".fd-select").forEach(s=>{
+    if(s.id!==parentId) s.classList.remove("active");
+  });
+  const popup=document.getElementById(popupId);
+  const parent=document.getElementById(parentId);
+  popup.classList.toggle("show");
+  parent.classList.toggle("active",popup.classList.contains("show"));
+}
+function toggleTransfer(key,e){
+  e.stopPropagation();
+  const opt=document.getElementById("fdopt-"+key);
+  const chk=document.getElementById("fdchk-"+key);
+  if(transferSel.has(key)){
+    transferSel.delete(key);
+    opt.classList.remove("active");
+  } else {
+    transferSel.add(key);
+    opt.classList.add("active");
+  }
+  updateAktarmaLabel();
+  applyFiltersAndSort();
+}
+function updateAktarmaLabel(){
+  const map={"direct":"Aktarmasız","one":"1 Aktarma","multi":"2+ Aktarma"};
+  const parts=[...transferSel].map(k=>map[k]);
+  document.getElementById("fdAktarmaVal").textContent=parts.length?" · "+parts.join(", "):"";
+  document.getElementById("fdAktarma").classList.toggle("active",transferSel.size>0);
+}
+
+/* ── Kalkış Saati (alt satır popup) — senkron hızlı filtreler ile ── */
+function toggleKalkisFilter(key,label,e){
+  e.stopPropagation();
+  const opt=document.getElementById("fdopt-k"+key);
+  const qfBtn=document.getElementById("qf-"+key);
+  if(kalkisSel.has(key)){
+    kalkisSel.delete(key);
+    activeQF.delete(key);
+    opt.classList.remove("active");
+    if(qfBtn) qfBtn.classList.remove("active");
+  } else {
+    kalkisSel.add(key);
+    activeQF.add(key);
+    opt.classList.add("active");
+    if(qfBtn) qfBtn.classList.add("active");
+  }
+  updateKalkisLabel();
+  applyFiltersAndSort();
+}
+function syncKalkisPopup(){
+  ["0006","0612","1218","1823"].forEach(k=>{
+    const opt=document.getElementById("fdopt-k"+k);
+    if(opt) opt.classList.toggle("active",kalkisSel.has(k));
+  });
+  updateKalkisLabel();
+}
+function updateKalkisLabel(){
+  const labels={"0006":"00-06","0612":"06-12","1218":"12-18","1823":"18-23"};
+  const parts=[...kalkisSel].map(k=>labels[k]);
+  document.getElementById("fdKalkisVal").textContent=parts.length?" · "+parts.join(", "):"";
+  document.getElementById("fdKalkis").classList.toggle("active",kalkisSel.size>0);
+}
+
+/* ── Aktif Pill'ler ── */
+function updateActivePills(){
+  const container=document.getElementById("activePills");
+  let html="";
+
+  if(sortMode!=="price"){
+    const slabels={"time":"Kalkış Saatine Göre","duration":"Uçuş Süresine Göre"};
+    html+=`<span class="sort-badge">⇅ ${slabels[sortMode]}</span>`;
+  }
+
+  const tmap={"direct":"Aktarmasız","one":"1 Aktarma","multi":"2+ Aktarma"};
+  transferSel.forEach(k=>{
+    html+=`<span class="af-pill" onclick="toggleTransfer('${k}',event);updateActivePills();">
+      ${tmap[k]} <span class="x">✕</span></span>`;
+  });
+
+  const qflabels={"0006":"00:00-06:00","0612":"06:00-12:00","1218":"12:00-18:00","1823":"18:00-23:59"};
+  kalkisSel.forEach(k=>{
+    html+=`<span class="af-pill" onclick="removeKalkis('${k}')">
+      🕐 ${qflabels[k]} <span class="x">✕</span></span>`;
+  });
+
+  if(transferSel.size>0||kalkisSel.size>0||sortMode!=="price"){
+    html+=`<span class="af-clear-all" onclick="clearAllFilters()">✕ Tümünü Temizle</span>`;
+  }
+  container.innerHTML=html;
+}
+function removeKalkis(k){
+  kalkisSel.delete(k); activeQF.delete(k);
+  const qfBtn=document.getElementById("qf-"+k);
+  if(qfBtn) qfBtn.classList.remove("active");
+  const opt=document.getElementById("fdopt-k"+k);
+  if(opt) opt.classList.remove("active");
+  updateKalkisLabel();
+  applyFiltersAndSort();
+}
+function clearAllFilters(){
+  sortMode="price";
+  document.getElementById("sortLabel").textContent="Fiyat";
+  document.querySelectorAll(".sort-option").forEach(o=>o.classList.remove("active"));
+  document.getElementById("sort-price").classList.add("active");
+  activeQF.clear(); kalkisSel.clear(); transferSel.clear();
+  document.querySelectorAll(".qf-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".fd-popup-opt").forEach(o=>o.classList.remove("active"));
+  updateAktarmaLabel(); updateKalkisLabel();
+  applyFiltersAndSort();
+}
+
+/* ── Fiyatı sayıya çevir ── */
+function parsePrice(s){
+  if(!s||s==="—") return Infinity;
+  return parseFloat(s.replace(/[^\d,]/g,"").replace(",",".")) || Infinity;
+}
+
+/* ── Saati dakikaya çevir ── */
+function timeToMin(t){
+  if(!t||t==="--:--") return Infinity;
+  const [h,m]=(t||"").split(":").map(Number);
+  return (h||0)*60+(m||0);
+}
+
+/* ── Süreyi dakikaya çevir ── */
+function durationToMin(d){
+  if(!d||d==="-") return Infinity;
+  const h=(d.match(/(\d+)\s*s/)||[0,0])[1];
+  const m=(d.match(/(\d+)\s*dk/)||[0,0])[1];
+  return parseInt(h)*60+parseInt(m);
+}
+
+/* ── Zaman aralığında mı? ── */
+function inTimeRange(timeStr, rangeKey){
+  const min=timeToMin(timeStr);
+  if(min===Infinity) return false;
+  const ranges={"0006":[0,359],"0612":[360,719],"1218":[720,1079],"1823":[1080,1439]};
+  const [lo,hi]=ranges[rangeKey];
+  return min>=lo && min<=hi;
+}
+
+/* ─── ANA FİLTRE & SIRALAMA ─── */
+function applyFiltersAndSort(){
+  if(!allFlights.length) return;
+
+  let list=[...allFlights];
+
+  // 1️⃣ Aktarma filtresi
+  if(transferSel.size>0){
+    list=list.filter(f=>{
+      const stops = f.isDirect ? 0 : 1; // basit — scraper sadece direct/indirect döndürüyor
+      if(transferSel.has("direct") && f.isDirect) return true;
+      if(transferSel.has("one")    && !f.isDirect) return true; // 1 aktarma = !direct
+      if(transferSel.has("multi")  && !f.isDirect) return true;
+      return false;
+    });
+  }
+
+  // 2️⃣ Kalkış saati filtresi
+  if(kalkisSel.size>0){
+    list=list.filter(f=>[...kalkisSel].some(k=>inTimeRange(f.departureTime,k)));
+  }
+
+  // 3️⃣ Sıralama
+  list.sort((a,b)=>{
+    if(sortMode==="price")    return parsePrice(a.price)-parsePrice(b.price);
+    if(sortMode==="time")     return timeToMin(a.departureTime)-timeToMin(b.departureTime);
+    if(sortMode==="duration") return durationToMin(a.duration)-durationToMin(b.duration);
+    return 0;
+  });
+
+  // 4️⃣ DOM güncelle
+  renderFlightCards(list);
+  updateActivePills();
+
+  // Fiyat aralığı
+  const prices=list.map(f=>parsePrice(f.price)).filter(p=>p!==Infinity);
+  if(prices.length){
+    const lo=Math.min(...prices), hi=Math.max(...prices);
+    const fmt=p=>p.toLocaleString("tr-TR")+" ₺";
+    document.getElementById("fdFiyatRange").textContent= lo===hi ? fmt(lo) : fmt(lo)+" – "+fmt(hi);
+  } else {
+    document.getElementById("fdFiyatRange").textContent="—";
+  }
+}
+
+/* ═══════════════════════════════════════
+   GİDİŞ-DÖNÜŞ STATE
+═══════════════════════════════════════ */
+let rtStep          = "outbound";   // "outbound" | "return"
+let selectedOutbound= null;         // seçilen gidiş uçuşu objesi
+let allReturnFlights= [];           // dönüş uçuşları
+let returnConfig    = {};           // dönüş araması için config
+
+function isRoundTrip(){ return currentConfig.tripType==="round-trip"; }
+
+/* Adım çubuğunu güncelle */
+function updateStepBar(){
+  if(!isRoundTrip()){ document.getElementById("stepBar").classList.remove("show"); return; }
+  document.getElementById("stepBar").classList.add("show");
+
+  const s1=document.getElementById("step1");
+  const s2=document.getElementById("step2");
+  const s1num=document.getElementById("step1Num");
+  const s1val=document.getElementById("step1Value");
+  const s1edit=document.getElementById("step1Edit");
+  const s2val=document.getElementById("step2Value");
+
+  if(rtStep==="outbound"){
+    s1.className="step-item active"; s1num.textContent="1";
+    s1val.textContent=`${currentConfig.origin} → ${currentConfig.destination}`;
+    s1edit.textContent="";
+    s2.className="step-item pending";
+    s2val.textContent="Bekleniyor...";
+  } else {
+    s1.className="step-item done"; s1num.textContent="✓";
+    if(selectedOutbound){
+      s1val.textContent=`${selectedOutbound.departureTime} kalkış · ${selectedOutbound.price}`;
     }
-  });
-  const fpRet = flatpickr("#returnDate", {
-    locale: "tr",
-    minDate: "today",
-    dateFormat: "d.m.Y",
-    disableMobile: true,
-  });
-
-  const CITIES = [
-    "İstanbul","Ankara","İzmir","Antalya","Trabzon","Adana",
-    "Bodrum","Dalaman","Gaziantep","Kayseri","Konya","Samsun",
-    "Erzurum","Diyarbakır","Van","Eskişehir","Hatay","Malatya",
-    "Nevşehir","Mardin","Elazığ","Kahramanmaraş"
-  ];
-
-  let tripType = "one-way";
-
-  function setTrip(t) {
-    tripType = t;
-    document.getElementById("btn-ow").classList.toggle("active", t==="one-way");
-    document.getElementById("btn-rt").classList.toggle("active", t==="round-trip");
-    document.getElementById("returnGroup").classList.toggle("show", t==="round-trip");
+    s1edit.textContent="Değiştir";
+    s2.className="step-item active";
+    s2val.textContent=`${currentConfig.destination} → ${currentConfig.origin}`;
   }
+}
 
-  function showSuggestions(field, value) {
-    const listEl = document.getElementById(field + "-suggestions");
-    if (!value || value.length < 1) { listEl.classList.remove("show"); return; }
-    const normalize = s => s.toLowerCase()
-      .replace(/ı/g,"i").replace(/İ/g,"i").replace(/ğ/g,"g")
-      .replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c");
-    const filtered = CITIES.filter(c => normalize(c).includes(normalize(value)));
-    if (!filtered.length) { listEl.classList.remove("show"); return; }
-    listEl.innerHTML = filtered.map(c =>
-      `<div class="suggestion-item" onmousedown="selectCity('${field}','${c}')">✈️ ${c}</div>`
-    ).join("");
-    listEl.classList.add("show");
+/* Seçilen gidiş banner */
+function updateSelectedBanner(){
+  const banner=document.getElementById("selectedBanner");
+  if(!isRoundTrip()||!selectedOutbound||rtStep!=="return"){
+    banner.classList.remove("show"); return;
   }
+  const f=selectedOutbound;
+  document.getElementById("selectedBannerInfo").textContent=
+    `${f.airline} · ${f.departureTime} → ${f.arrivalTime} · ${f.duration} · ${f.price}`;
+  banner.classList.add("show");
+}
 
-  function selectCity(field, city) {
-    document.getElementById(field).value = city;
-    document.getElementById(field + "-suggestions").classList.remove("show");
-  }
+/* Dönüş başlık bandı */
+function updateReturnTitle(){
+  const el=document.getElementById("returnSectionTitle");
+  el.classList.toggle("show", isRoundTrip()&&rtStep==="return");
+}
 
-  function hideSuggestions(id) {
-    setTimeout(() => document.getElementById(id).classList.remove("show"), 200);
-  }
+/* Gidiş adımına geri dön */
+function goBackToOutbound(){
+  if(rtStep!=="return") return;
+  rtStep="outbound";
+  selectedOutbound=null;
+  allFlights=[...window._outboundFlights||[]];
+  applyFiltersAndSort();
+  updateStepBar();
+  updateSelectedBanner();
+  updateReturnTitle();
+  resetFilters();
+}
 
-  window.onload = async () => {
-    try {
-      const res = await fetch("data.json?" + Date.now());
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.searchConfig) {
-        const c = data.searchConfig;
-        document.getElementById("origin").value = c.origin || "";
-        document.getElementById("destination").value = c.destination || "";
-        if (c.departureDate) fpDep.setDate(c.departureDate, true, "d.m.Y");
-        if (c.returnDate) fpRet.setDate(c.returnDate, true, "d.m.Y");
-        document.getElementById("adults").value = c.adults || 1;
-        document.getElementById("children").value = c.children || 0;
-        if (c.tripType) setTrip(c.tripType);
-        if (c.nonStop) document.getElementById("nonstopCheck").checked = true;
-      }
-      if (data.flights && data.flights.length > 0) renderResults(data);
-    } catch(e) {}
+/* Gidiş uçuşu seçildi → dönüş aramasını başlat */
+async function selectOutboundFlight(idx){
+  selectedOutbound=allFlights[idx]||null;
+  if(!selectedOutbound) return;
+  rtStep="return";
+  updateStepBar();
+  updateSelectedBanner();
+  updateReturnTitle();
+  resetFilters();
+
+  // Dönüş araması için config: origin↔destination ters
+  returnConfig={
+    tripType:"one-way",
+    origin: currentConfig.destination,
+    destination: currentConfig.origin,
+    departureDate: currentConfig.returnDate,
+    adults: currentConfig.adults,
+    children: currentConfig.children,
+    nonStop: currentConfig.nonStop,
+    _isReturn: true
   };
 
-  async function startSearch() {
-    const origin = document.getElementById("origin").value.trim();
-    const destination = document.getElementById("destination").value.trim();
-    const departureDate = document.getElementById("departureDate").value.trim();
-    const returnDate = document.getElementById("returnDate").value.trim();
-    const adults = parseInt(document.getElementById("adults").value) || 1;
-    const children = parseInt(document.getElementById("children").value) || 0;
-    const nonStop = document.getElementById("nonstopCheck").checked;
+  setLoading(true, `${returnConfig.origin} → ${returnConfig.destination} dönüş uçuşları aranıyor...`);
+  document.getElementById("flightsList").innerHTML="";
+  document.getElementById("flightCount").textContent="aranıyor...";
 
-    if (!origin || !destination) { alert("Kalkış ve varış şehri zorunludur!"); return; }
-    if (!departureDate) { alert("Gidiş tarihi seçiniz!"); return; }
-    if (tripType === "round-trip" && !returnDate) { alert("Dönüş tarihi seçiniz!"); return; }
+  try{
+    const res=await fetch("/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(returnConfig)});
+    const data=await res.json();
+    setLoading(false);
+    if(!res.ok){ showError("Dönüş hatası: "+(data.error||"?")); return; }
+    allReturnFlights=[...data.flights];
+    allFlights=[...allReturnFlights];
 
-    const config = { tripType, origin, destination, departureDate,
-      returnDate: tripType==="round-trip" ? returnDate : undefined,
-      adults, children, nonStop };
+    // Başlık güncelle
+    document.getElementById("resultsTitle").innerHTML=
+      `${returnConfig.origin} → ${returnConfig.destination} · ${returnConfig.departureDate}` +
+      (currentConfig.nonStop?` <span style="font-size:.72rem;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:20px;font-weight:700;">Aktarmasız</span>`:"");
+    document.getElementById("flightCount").textContent=`${data.flights.length} uçuş`;
+    document.getElementById("scrapedAt").textContent=`Son güncelleme: ${new Date(data.scrapedAt).toLocaleString("tr-TR")}`;
 
-    setLoading(true, "Obilet'te uçuşlar aranıyor... (1-2 dk)");
-    hideError();
-    document.getElementById("resultsSection").style.display = "none";
+    applyFiltersAndSort();
+  } catch(err){
+    setLoading(false);
+    showError("Dönüş uçuşları yüklenemedi.");
+  }
+}
 
-    try {
-      const statusRes = await fetch("/status", { signal: AbortSignal.timeout(2000) });
-      if (!statusRes.ok) throw new Error("no-server");
-    } catch(e) {
-      setLoading(false);
-      showFallback(config);
-      return;
-    }
+function resetFilters(){
+  sortMode="price"; activeQF.clear(); kalkisSel.clear(); transferSel.clear();
+  document.querySelectorAll(".qf-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".fd-popup-opt").forEach(o=>o.classList.remove("active"));
+  document.getElementById("sortLabel").textContent="Fiyat";
+  document.querySelectorAll(".sort-option").forEach(o=>o.classList.remove("active"));
+  document.getElementById("sort-price").classList.add("active");
+  updateAktarmaLabel(); updateKalkisLabel();
+}
 
-    try {
-      const res = await fetch("/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config)
-      });
-      const data = await res.json();
-      setLoading(false);
-      if (!res.ok) { showError("Hata: " + (data.error || "Bilinmeyen hata")); return; }
-      renderResults(data);
-    } catch(err) {
-      setLoading(false);
-      showError("Sunucuya bağlanılamadı. Terminalde 'npm run server' çalıştır.");
-    }
+/* ─── UÇUŞ KARTLARINI RENDER ET ─── */
+function renderFlightCards(flights){
+  document.getElementById("flightCount").textContent=`${flights.length} uçuş`;
+  if(!flights.length){
+    document.getElementById("flightsList").innerHTML=
+      '<div class="empty"><div class="icon">✈️</div><p>Filtreyle eşleşen uçuş bulunamadı.</p></div>';
+    return;
   }
 
-  function setLoading(show, text) {
-    document.getElementById("statusBar").classList.toggle("show", show);
-    if (text) document.getElementById("statusText").textContent = text;
-    const btn = document.getElementById("searchBtn");
-    btn.disabled = show;
-    btn.textContent = show ? "⏳ Çalışıyor..." : "🔎 Ara";
-  }
+  const isReturn = isRoundTrip() && rtStep==="return";
+  const origin    = isReturn ? currentConfig.destination : (currentConfig.origin||"");
+  const dest      = isReturn ? currentConfig.origin      : (currentConfig.destination||"");
 
-  function showError(msg) {
-    const bar = document.getElementById("errorBar");
-    bar.textContent = "❌ " + msg; bar.classList.add("show");
-  }
-  function hideError() { document.getElementById("errorBar").classList.remove("show"); }
-
-  function showFallback(config) {
-    document.getElementById("resultsSection").style.display = "block";
-    document.getElementById("flightsList").innerHTML = `
-      <div class="fallback-box">
-        <p style="color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:16px;">
-          ⚠️ <b>Sunucu modu aktif değil.</b> Terminalde <code>npm run server</code> komutunu çalıştır, sonra tekrar "Ara"ya bas.
-        </p>
-        <button class="reload-btn" onclick="location.reload()">🔄 Sayfayı Yenile</button>
-      </div>`;
-    document.getElementById("flightCount").textContent = "bekliyor";
-  }
-
-  function renderResults(data) {
-    const { searchConfig: c, flights, scrapedAt } = data;
-    document.getElementById("resultsSection").style.display = "block";
-    const nonstopTag = c.nonStop ? ' <span style="font-size:.75rem;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:20px;font-weight:600;">Aktarmasız</span>' : '';
-    document.getElementById("resultsTitle").textContent = "";
-    document.getElementById("resultsTitle").innerHTML = `${c.origin} → ${c.destination} · ${c.departureDate}${nonstopTag}`;
-    document.getElementById("flightCount").textContent = `${flights.length} uçuş`;
-    document.getElementById("scrapedAt").textContent = `Son güncelleme: ${new Date(scrapedAt).toLocaleString("tr-TR")}`;
-
-    if (!flights.length) {
-      document.getElementById("flightsList").innerHTML = '<div class="empty"><div class="icon">✈️</div><p>Uçuş bulunamadı.</p></div>';
-      return;
-    }
-
-    document.getElementById("flightsList").innerHTML = flights.map((f,i) => `
-      <div class="flight-wrap">
-        <span class="rank">${i+1}</span>
-        <div class="flight-card">
-          <div class="time-block">
-            <span class="time">${f.departureTime||"--:--"}</span>
-            <span class="city">${c.origin}</span>
-            <span class="airline-name">✈ ${f.airline||"?"}</span>
-          </div>
-          <div class="mid">
-            <div class="arr-line"><div class="line"></div><span>✈</span><div class="line"></div></div>
-            <span class="dur">${f.duration||"-"}</span>
-            <span class="dbadge ${f.isDirect?"direct":"indirect"}">${f.isDirect?"Direkt":"Aktarmalı"}</span>
-          </div>
-          <div class="time-block">
-            <span class="time">${f.arrivalTime||"--:--"}</span>
-            <span class="city">${c.destination}</span>
-          </div>
-          <div class="price-block">
-            <div class="price">${f.price||"—"}</div>
-            <div class="price-sub">kişi başı</div>
-          </div>
+  document.getElementById("flightsList").innerHTML=flights.map((f,i)=>`
+    <div class="flight-wrap">
+      <span class="rank">${i+1}</span>
+      <div class="flight-card" style="${isRoundTrip()&&rtStep==='outbound'?'cursor:pointer;':''}"
+           ${isRoundTrip()&&rtStep==='outbound'?`onclick="selectOutboundFlight(${i})" title="Bu uçuşu seç"`:''}
+      >
+        <div class="time-block">
+          <span class="time">${f.departureTime||"--:--"}</span>
+          <span class="city">${origin}</span>
+          <span class="airline-name">✈ ${f.airline||"?"}</span>
         </div>
-      </div>`).join("");
+        <div class="mid">
+          <div class="arr-line"><div class="line"></div><span>✈</span><div class="line"></div></div>
+          <span class="dur">${f.duration||"-"}</span>
+          <span class="dbadge ${f.isDirect?"direct":"indirect"}">${f.isDirect?"Direkt":"Aktarmalı"}</span>
+        </div>
+        <div class="time-block">
+          <span class="time">${f.arrivalTime||"--:--"}</span>
+          <span class="city">${dest}</span>
+        </div>
+        <div class="price-block">
+          <div class="price">${f.price||"—"}</div>
+          <div class="price-sub">kişi başı</div>
+          ${isRoundTrip()&&rtStep==='outbound'
+            ? `<button onclick="event.stopPropagation();selectOutboundFlight(${i})"
+                 style="margin-top:6px;padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;">
+                 Seç →</button>`
+            : ''}
+          ${isRoundTrip()&&rtStep==='return'
+            ? `<button onclick="confirmReturn(${i})"
+                 style="margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;">
+                 Seç ✓</button>`
+            : ''}
+        </div>
+      </div>
+    </div>`).join("");
+
+  // Gidiş modunda kart hover efekti ipucu
+  if(isRoundTrip()&&rtStep==="outbound"){
+    const style=document.getElementById("rt-hover-style")||document.createElement("style");
+    style.id="rt-hover-style";
+    style.textContent=`.flight-card:hover { box-shadow:0 0 0 2px var(--blue), var(--shadow-md) !important; }`;
+    if(!document.getElementById("rt-hover-style")) document.head.appendChild(style);
+  } else {
+    const s=document.getElementById("rt-hover-style");
+    if(s) s.remove();
   }
+}
+
+/* Dönüş uçuşu seçimi tamamlandı */
+function confirmReturn(idx){
+  const retFlight=allFlights[idx];
+  if(!retFlight) return;
+
+  // Özet modalı göster
+  const out=selectedOutbound;
+  const ret=retFlight;
+  const c=currentConfig;
+  const summary=`
+    <div style="background:#fff;border-radius:14px;padding:28px;max-width:520px;margin:0 auto;box-shadow:0 8px 40px rgba(0,0,0,.18);">
+      <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:18px;color:var(--gray-800);">✅ Uçuş Seçimi Tamamlandı!</h3>
+      <div style="background:var(--blue-pale);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-size:.72rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">✈ Gidiş · ${c.origin} → ${c.destination} · ${c.departureDate}</div>
+        <div style="font-weight:800;font-size:.95rem;">${out.airline} &nbsp;|&nbsp; ${out.departureTime} → ${out.arrivalTime} &nbsp;|&nbsp; ${out.duration}</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--blue);margin-top:4px;">${out.price}</div>
+      </div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:14px 16px;margin-bottom:18px;">
+        <div style="font-size:.72rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">🔄 Dönüş · ${c.destination} → ${c.origin} · ${c.returnDate}</div>
+        <div style="font-weight:800;font-size:.95rem;">${ret.airline} &nbsp;|&nbsp; ${ret.departureTime} → ${ret.arrivalTime} &nbsp;|&nbsp; ${ret.duration}</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--green);margin-top:4px;">${ret.price}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <span style="font-size:.88rem;font-weight:700;">Toplam Tahmini Fiyat</span>
+        <span style="font-size:1.2rem;font-weight:800;color:var(--blue);">${sumPrices(out.price, ret.price)}</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeModal()" style="flex:1;padding:10px;border:1.5px solid var(--gray-200);background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:.88rem;">Kapat</button>
+        <button onclick="goBackToOutbound();closeModal()" style="flex:1;padding:10px;border:none;background:var(--blue);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:.88rem;">🔄 Yeniden Seç</button>
+      </div>
+    </div>`;
+
+  showModal(summary);
+}
+
+function sumPrices(a,b){
+  const p1=parsePrice(a), p2=parsePrice(b);
+  if(p1===Infinity||p2===Infinity) return "—";
+  return (p1+p2).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})+" ₺";
+}
+
+/* Modal yardımcıları */
+function showModal(html){
+  let overlay=document.getElementById("modal-overlay");
+  if(!overlay){
+    overlay=document.createElement("div");
+    overlay.id="modal-overlay";
+    overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;";
+    overlay.onclick=e=>{ if(e.target===overlay) closeModal(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML=html;
+  overlay.style.display="flex";
+}
+function closeModal(){
+  const o=document.getElementById("modal-overlay");
+  if(o) o.style.display="none";
+}
+
+/* ─── ANA RENDER ─── */
+function renderResults(data){
+  const {searchConfig:c, flights, scrapedAt}=data;
+  currentConfig=c;
+  allFlights=[...flights];
+  window._outboundFlights=[...flights]; // gidiş uçuşlarını sakla
+
+  // Round-trip state sıfırla
+  rtStep="outbound";
+  selectedOutbound=null;
+  allReturnFlights=[];
+
+  resetFilters();
+  updateStepBar();
+  updateSelectedBanner();
+  updateReturnTitle();
+
+  document.getElementById("resultsSection").style.display="block";
+  const nonstopTag=c.nonStop?` <span style="font-size:.72rem;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:20px;font-weight:700;">Aktarmasız</span>`:"";
+  document.getElementById("resultsTitle").innerHTML=`${c.origin} → ${c.destination} · ${c.departureDate}${nonstopTag}`;
+  document.getElementById("scrapedAt").textContent=`Son güncelleme: ${new Date(scrapedAt).toLocaleString("tr-TR")}`;
+
+  if(!flights.length){
+    document.getElementById("flightsList").innerHTML='<div class="empty"><div class="icon">✈️</div><p>Uçuş bulunamadı.</p></div>';
+    document.getElementById("flightCount").textContent="0 uçuş";
+    return;
+  }
+
+  applyFiltersAndSort();
+}
+
+/* ─── POPUP DIŞINA TIKLAYINCA KAPAT ─── */
+document.addEventListener("click",e=>{
+  if(!e.target.closest("#sortWrapper")){
+    document.getElementById("sortBtn").classList.remove("open");
+    document.getElementById("sortDropdown").classList.remove("show");
+  }
+  if(!e.target.closest(".fd-select")){
+    document.querySelectorAll(".fd-popup").forEach(p=>p.classList.remove("show"));
+    document.querySelectorAll(".fd-select").forEach(s=>s.classList.remove("active"));
+  }
+});
+
+/* ─── SAYFA YÜKLENİNCE MEVCUT VERİYİ OKU ─── */
+window.onload=async()=>{
+  try{
+    const res=await fetch("data.json?"+Date.now());
+    if(!res.ok) return;
+    const data=await res.json();
+    if(data.searchConfig){
+      const c=data.searchConfig;
+      document.getElementById("origin").value=c.origin||"";
+      document.getElementById("destination").value=c.destination||"";
+      if(c.departureDate) fpDep.setDate(c.departureDate,true,"d.m.Y");
+      if(c.returnDate)    fpRet.setDate(c.returnDate,true,"d.m.Y");
+      document.getElementById("adults").value=c.adults||1;
+      document.getElementById("children").value=c.children||0;
+      if(c.tripType) setTrip(c.tripType);
+      if(c.nonStop)  document.getElementById("nonstopCheck").checked=true;
+    }
+    if(data.flights&&data.flights.length>0) renderResults(data);
+  }catch(e){}
+};
 </script>
 </body>
 </html>

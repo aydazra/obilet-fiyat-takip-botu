@@ -10,12 +10,12 @@
     "dev": "ts-node src/index.ts",
     "serve": "npx serve public"
   },
-  "dependencies": {
-    "puppeteer": "^24.15.0"
-  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "puppeteer": "^21.11.0"
   }
 }
