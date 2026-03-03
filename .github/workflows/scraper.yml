@@ -56,7 +56,10 @@ jobs:
         run: npm ci
 
       - name: TypeScript Derle
-        run: npm run build
+        run: |
+          npm run build
+          echo "--- dist klasoru ---"
+          ls -la dist/
 
       - name: Parametreleri Ayarla
         run: |
@@ -73,6 +76,36 @@ jobs:
           echo "FLIGHT_DATE=$DEP_DATE"           >> $GITHUB_ENV
           echo "Kalkis: $ORIGIN | Varis: $DESTINATION | Tarih: $DEP_DATE"
 
+      - name: runner.js Olustur
+        run: |
+          cat > runner.js << 'EOF'
+          const path = require('path');
+          const { runScraper } = require(path.join(__dirname, 'dist', 'scraper'));
+          const fs = require('fs');
+          const config = {
+            tripType: 'one-way',
+            origin: process.env.FLIGHT_ORIGIN || 'Istanbul',
+            destination: process.env.FLIGHT_DESTINATION || 'Ankara',
+            departureDate: process.env.FLIGHT_DATE,
+            adults: 1,
+            children: 0,
+            nonStop: false
+          };
+          console.log('Config:', JSON.stringify(config, null, 2));
+          runScraper(config).then(result => {
+            fs.writeFileSync('fiyatlar.json', JSON.stringify(result, null, 2));
+            fs.mkdirSync('public', { recursive: true });
+            fs.writeFileSync('public/data.json', JSON.stringify(result, null, 2));
+            console.log('Bulunan ucus sayisi:', result.flights.length);
+            result.flights.forEach((f, i) => {
+              console.log((i+1) + '. ' + f.airline + ' | ' + f.departureTime + ' -> ' + f.arrivalTime + ' | ' + f.price);
+            });
+          }).catch(err => {
+            console.error('Scraper hatasi:', err.message);
+            process.exit(1);
+          });
+          EOF
+
       - name: Scraper Calistir
         env:
           PUPPETEER_EXECUTABLE_PATH: ${{ env.PUPPETEER_EXECUTABLE_PATH }}
@@ -80,33 +113,7 @@ jobs:
           FLIGHT_ORIGIN:      ${{ env.FLIGHT_ORIGIN }}
           FLIGHT_DESTINATION: ${{ env.FLIGHT_DESTINATION }}
           FLIGHT_DATE:        ${{ env.FLIGHT_DATE }}
-        run: |
-          node -e "
-            const { runScraper } = require('./dist/scraper');
-            const fs = require('fs');
-            const config = {
-              tripType: 'one-way',
-              origin: process.env.FLIGHT_ORIGIN || 'Istanbul',
-              destination: process.env.FLIGHT_DESTINATION || 'Ankara',
-              departureDate: process.env.FLIGHT_DATE,
-              adults: 1,
-              children: 0,
-              nonStop: false
-            };
-            console.log('Config:', config);
-            runScraper(config).then(result => {
-              fs.writeFileSync('fiyatlar.json', JSON.stringify(result, null, 2));
-              fs.mkdirSync('public', { recursive: true });
-              fs.writeFileSync('public/data.json', JSON.stringify(result, null, 2));
-              console.log('Bulunan ucus sayisi:', result.flights.length);
-              result.flights.forEach((f,i) => {
-                console.log((i+1)+'. '+f.airline+' | '+f.departureTime+' -> '+f.arrivalTime+' | '+f.price);
-              });
-            }).catch(err => {
-              console.error('Scraper hatasi:', err);
-              process.exit(1);
-            });
-          "
+        run: node runner.js
 
       - name: Screenshot Yukle (hata varsa)
         if: failure()
